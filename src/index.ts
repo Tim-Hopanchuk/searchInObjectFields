@@ -21,14 +21,17 @@ export function searchInObjectFields(
     queueOfPaths.push([key]);
   }
 
-  while (queueOfPaths.length > 0) {
-    const path = queueOfPaths.shift();
+  for (let i = 0; i < queueOfPaths.length; i++) {
+    const path = queueOfPaths[i];
     if (path === undefined) {
       continue;
     }
 
-    const current = getFieldByPath(root, path);
-    const parent = getFieldByPath(root, path.slice(0, path.length - 1));
+    const parent = getFieldByPath(root, path.slice(0, -1)) as Record<
+      string,
+      unknown
+    >;
+    const current = parent[path[path.length - 1]];
 
     // Match check
     if (callback(current, path, parent)) {
