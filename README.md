@@ -28,7 +28,7 @@ const data = {
   user: {
     name: "Alice",
     contact: {
-      email: "alice@example.com",
+      address: "1234 Example Str",
       phone: "123-456",
     },
   },
@@ -39,7 +39,7 @@ const data = {
 };
 
 const callback = (value, path, parent) => {
-  if (value === "alice@example.com") {
+  if (value === "123-456") {
     console.log("Match found at path:", path.join("."));
     console.log("Parent object:", parent);
     return true; // Stop traversal
@@ -55,13 +55,13 @@ const filter = (value, path, parent) => {
 
 searchInObjectFields(
   data,
-  callback, // Find "alice@example.com" value
+  callback, // Find "123-456" value
   filter, // Skip fields under "meta"
   3 // Maximum depth
 );
 
 /*
-Match found at path: user.contact.email
-Parent object: {email: 'alice@example.com', phone: '123-456'}
+Match found at path: user.contact.phone
+Parent object: {address: '1234 Example Str', phone: '123-456'}
 */
 ```
