@@ -1,9 +1,23 @@
 "use strict";
 
+/**
+ * Performs a deep traversal of object fields with support for conditional matching, optional filtering and optional depth limitation.
+ *
+ * @param {unknown} obj - 
+ * The object to traverse.
+ * @param {(value: unknown, path: string[], parent: Record<string, unknown>) => boolean} callback - 
+ * A function called for each field. If it returns true, traversal stops.
+ * @param {(value: unknown, path: string[], parent: Record<string, unknown>) => boolean} [filter] - 
+ * An optional function to skip certain fields. If it returns true, the field is skipped.
+ * @param {number} [maxDepth] - 
+ * Optional maximum depth of traversal. If set, traversal stops at this depth.
+ * @returns {void}
+ */
+
 export function searchInObjectFields(
   obj: unknown,
-  callback: (value: unknown, path: string[], parent: unknown) => boolean,
-  filter?: (value: unknown, path: string[], parent: unknown) => boolean,
+  callback: (value: unknown, path: string[], parent: Record<string, unknown>) => boolean,
+  filter?: (value: unknown, path: string[], parent: Record<string, unknown>) => boolean,
   maxDepth?: number
 ) {
   if (typeof obj !== "object" || obj === null) {
@@ -16,18 +30,18 @@ export function searchInObjectFields(
 
   const root = obj as Record<string, unknown>;
 
-  let queueOfPaths: [string[], Record<string, unknown>][] = [];
+  let queue: [string[], Record<string, unknown>][] = [];
   for (let key in root) {
-    queueOfPaths.push([[key], root]);
+    queue.push([[key], root]);
   }
 
-  for (let i = 0; i < queueOfPaths.length; i++) {
-    const path = queueOfPaths[i][0];
+  for (let i = 0; i < queue.length; i++) {
+    const path = queue[i][0];
     if (path === undefined) {
       continue;
     }
 
-    const parent = queueOfPaths[i][1] as Record<string, unknown>;
+    const parent = queue[i][1] as Record<string, unknown>;
     const current = parent[path[path.length - 1]] as Record<string, unknown>;
 
     // Match check
@@ -52,7 +66,7 @@ export function searchInObjectFields(
 
     // Add nested object keys to the queue
     for (let key in current) {
-      queueOfPaths.push([[...path, key], current]);
+      queue.push([[...path, key], current]);
     }
   }
 }
