@@ -16,22 +16,19 @@ export function searchInObjectFields(
 
   const root = obj as Record<string, unknown>;
 
-  let queueOfPaths: string[][] = [];
+  let queueOfPaths: [string[], Record<string, unknown>][] = [];
   for (let key in root) {
-    queueOfPaths.push([key]);
+    queueOfPaths.push([[key], root]);
   }
 
   for (let i = 0; i < queueOfPaths.length; i++) {
-    const path = queueOfPaths[i];
+    const path = queueOfPaths[i][0];
     if (path === undefined) {
       continue;
     }
 
-    const parent = getFieldByPath(root, path.slice(0, -1)) as Record<
-      string,
-      unknown
-    >;
-    const current = parent[path[path.length - 1]];
+    const parent = queueOfPaths[i][1] as Record<string, unknown>;
+    const current = parent[path[path.length - 1]] as Record<string, unknown>;
 
     // Match check
     if (callback(current, path, parent)) {
@@ -55,17 +52,7 @@ export function searchInObjectFields(
 
     // Add nested object keys to the queue
     for (let key in current) {
-      queueOfPaths.push([...path, key]);
+      queueOfPaths.push([[...path, key], current]);
     }
   }
-}
-
-export function getFieldByPath(obj: Record<string, unknown>, path: string[]) {
-  let current: unknown = obj;
-  for (let i = 0; i < path.length; i++) {
-    if (typeof current === "object" && current !== null && path[i] in current) {
-      current = (current as Record<string, unknown>)[path[i]];
-    }
-  }
-  return current;
 }
