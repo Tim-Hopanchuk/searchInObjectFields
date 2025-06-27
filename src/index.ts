@@ -3,21 +3,29 @@
 /**
  * Performs a deep traversal of object fields with support for conditional matching, optional filtering and optional depth limitation.
  *
- * @param {unknown} obj - 
+ * @param {unknown} obj -
  * The object to traverse.
- * @param {(value: unknown, path: string[], parent: Record<string, unknown>) => boolean} callback - 
+ * @param {(value: unknown, path: string[], parent: Record<string, unknown>) => boolean} callback -
  * A function called for each field. If it returns true, traversal stops.
- * @param {(value: unknown, path: string[], parent: Record<string, unknown>) => boolean} [filter] - 
+ * @param {(value: unknown, path: string[], parent: Record<string, unknown>) => boolean} [filter] -
  * An optional function to skip certain fields. If it returns true, the field is skipped.
- * @param {number} [maxDepth] - 
+ * @param {number} [maxDepth] -
  * Optional maximum depth of traversal. If set, traversal stops at this depth.
  * @returns {void}
  */
 
 export function searchInObjectFields(
   obj: unknown,
-  callback: (value: unknown, path: string[], parent: Record<string, unknown>) => boolean,
-  filter?: (value: unknown, path: string[], parent: Record<string, unknown>) => boolean,
+  callback: (
+    value: unknown,
+    path: string[],
+    parent: Record<string, unknown>
+  ) => boolean,
+  filter?: (
+    value: unknown,
+    path: string[],
+    parent: Record<string, unknown>
+  ) => boolean,
   maxDepth?: number
 ) {
   if (typeof obj !== "object" || obj === null) {
@@ -35,14 +43,14 @@ export function searchInObjectFields(
     queue.push([[key], root]);
   }
 
+  const visited = new Set();
+  visited.add(root);
+
   for (let i = 0; i < queue.length; i++) {
     const path = queue[i][0];
-    if (path === undefined) {
-      continue;
-    }
 
     const parent = queue[i][1] as Record<string, unknown>;
-    const current = parent[path[path.length - 1]] as Record<string, unknown>;
+    const current = parent[path[path.length - 1]];
 
     // Match check
     if (callback(current, path, parent)) {
@@ -64,9 +72,15 @@ export function searchInObjectFields(
       continue;
     }
 
+    // Cyclic reference check
+    if (visited.has(current)) {
+      continue;
+    }
+    visited.add(current);
+
     // Add nested object keys to the queue
     for (let key in current) {
-      queue.push([[...path, key], current]);
+      queue.push([[...path, key], current as Record<string, unknown>]);
     }
   }
 }
