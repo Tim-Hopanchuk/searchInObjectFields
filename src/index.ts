@@ -38,13 +38,21 @@ export function searchInObjectFields(
 
   const root = obj as Record<string, unknown>;
 
-  let queue: [string[], Record<string, unknown>][] = [];
-  for (let key in root) {
-    queue.push([[key], root]);
-  }
-
   const visited = new Set();
   visited.add(root);
+
+  let queue: [string[], Record<string, unknown>][] = [];
+  for (let key in root) {
+    // Cyclic reference check
+    if (visited.has(root[key])) {
+      continue;
+    }
+    if (typeof root[key] === "object" && root[key] !== null) {
+      visited.add(root[key]);
+    }
+
+    queue.push([[key], root]);
+  }
 
   for (let i = 0; i < queue.length; i++) {
     const path = queue[i][0];
@@ -72,15 +80,19 @@ export function searchInObjectFields(
       continue;
     }
 
-    // Cyclic reference check
-    if (visited.has(current)) {
-      continue;
-    }
-    visited.add(current);
+    const currentObj = current as Record<string, unknown>;
 
     // Add nested object keys to the queue
-    for (let key in current) {
-      queue.push([[...path, key], current as Record<string, unknown>]);
+    for (let key in currentObj) {
+      // Cyclic reference check
+      if (visited.has(currentObj[key])) {
+        continue;
+      }
+      if (typeof currentObj[key] === "object" && currentObj[key] !== null) {
+        visited.add(currentObj[key]);
+      }
+
+      queue.push([[...path, key], currentObj as Record<string, unknown>]);
     }
   }
 }
